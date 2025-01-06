@@ -194,18 +194,21 @@ function M.set_priority()
 		return
 	end
 
-	vim.ui.select({ 'low', 'medium', 'high' }, {
-		prompt = 'Select priority:',
-		format_item = function(item)
-			return item:sub(1, 1):upper() .. item:sub(2)
-		end,
-	}, function(choice)
-		if choice then
-			note.priority = choice
-			save_notes()
-			render()
+	-- Cycle through priorities instead of using ui.select
+	local priorities = { 'low', 'medium', 'high' }
+	local current = note.priority or 'low'
+	local next_index = 1
+
+	for i, p in ipairs(priorities) do
+		if p == current then
+			next_index = (i % #priorities) + 1
+			break
 		end
-	end)
+	end
+
+	note.priority = priorities[next_index]
+	save_notes()
+	render()
 end
 
 local function load_notes()
