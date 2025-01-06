@@ -1,5 +1,5 @@
-local EMPTY_BOX = '☐'
-local CHECKED_BOX = '☒'
+local BULLET = '•'
+local X_MARK = '✗'
 local BUFFER_NAME = 'TodoList'
 
 local KEYBINDS = {
@@ -30,7 +30,7 @@ local M = {
 
 local function render_note(note, level, lines, ancestors_done)
 	local indent = string.rep('  ', level)
-	local checkbox = note.done and CHECKED_BOX or EMPTY_BOX
+	local checkbox = note.done and X_MARK or BULLET
 	local text = note.note
 	local is_done = note.done or ancestors_done
 
