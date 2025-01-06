@@ -39,7 +39,13 @@ local function render_note(note, level, lines, ancestors_done)
 	local is_done = note.done or ancestors_done
 
 	if is_done then
-		text = text:gsub('.', '%0̶')
+		text = text:gsub(".", function(c)
+			if c == ' ' then
+				return '-̶'
+			else
+				return c .. '̶'
+			end
+		end)
 	end
 
 	local line = indent .. checkbox .. ' ' .. text
