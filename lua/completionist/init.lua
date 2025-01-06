@@ -338,23 +338,24 @@ end
 
 function M.toggle()
 	if M.window and vim.api.nvim_win_is_valid(M.window) then
-		if M.config.filepath then
-			local file = io.open(M.config.filepath, 'w')
-			if file then
-				local ok, content = pcall(vim.json.encode, M.notes)
-				if ok then
-					file:write(content)
-				end
-				file:close()
-			end
-		end
-
-		vim.api.nvim_win_close(M.window, true)
+		local win_to_close = M.window
 		M.window = nil
 
 		if M.buffer and vim.api.nvim_buf_is_valid(M.buffer) then
 			vim.api.nvim_buf_set_option(M.buffer, 'bufhidden', 'hide')
 		end
+
+		vim.api.nvim_win_close(win_to_close, true)
+
+		vim.schedule(function()
+			if M.config.filepath then
+				local ok, content = pcall(vim.json.encode, M.notes)
+				if ok then
+					vim.fn.writefile({ content }, M.config.filepath)
+				end
+			end
+		end)
+
 		return
 	end
 
@@ -374,12 +375,10 @@ function M.toggle()
 			vim.api.nvim_buf_set_option(M.buffer, k, v)
 		end
 
-		if M.config.filepath then
-			local file = io.open(M.config.filepath, 'r')
-			if file then
-				local content = file:read('*all')
-				file:close()
-				local ok, result = pcall(vim.json.decode, content)
+		if M.config.filepath and vim.fn.filereadable(M.config.filepath) == 1 then
+			local content = vim.fn.readfile(M.config.filepath)
+			if #content > 0 then
+				local ok, result = pcall(vim.json.decode, content[1])
 				if ok then
 					M.notes = result or {}
 				end
