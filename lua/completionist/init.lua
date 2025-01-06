@@ -24,7 +24,7 @@ local M = {
 		icons = {
 			bullet = '•',
 			done = '✗',
-		}
+		},
 	},
 	buffer = nil,
 	window = nil,
@@ -182,9 +182,23 @@ end
 function M.delete_note()
 	local note, container, index = get_note_at_cursor()
 	if note and container and index then
-		table.remove(container, index)
-		save_notes()
-		render()
+		local msg = string.format('Delete "%s"?', note.note)
+		if note.subnotes and #note.subnotes > 0 then
+			msg = msg .. string.format(' (and %d subnotes)', #note.subnotes)
+		end
+		msg = msg .. ' (y/N): '
+
+		vim.fn.inputsave()
+		local answer = vim.fn.input(msg)
+		vim.fn.inputrestore()
+
+		vim.cmd('redraw')
+
+		if answer ~= '' and answer:lower() == 'y' then
+			table.remove(container, index)
+			save_notes()
+			render()
+		end
 	end
 end
 
@@ -207,7 +221,7 @@ function M.set_priority()
 	local opts = {
 		prompt = 'Select priority:',
 		format_item = function(item)
-			return item:sub(1, 1):upper() .. item:sub(2) -- Capitalize first letter
+			return item:sub(1, 1):upper() .. item:sub(2)
 		end,
 	}
 
