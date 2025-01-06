@@ -248,7 +248,7 @@ function M.setup(opts)
 		highlight default TodoListNormal guifg=%s
 		highlight default TodoListDone guifg=%s
 		highlight default TodoListMedium guifg=%s
-		highlight default TodoListHigh guifg=%s gui=bold
+		highlight default TodoListHigh guifg=%s
 	]],
 		M.config.colors.normal,
 		M.config.colors.done,
