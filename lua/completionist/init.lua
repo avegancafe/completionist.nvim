@@ -194,21 +194,39 @@ function M.set_priority()
 		return
 	end
 
-	-- Cycle through priorities instead of using ui.select
 	local priorities = { 'low', 'medium', 'high' }
-	local current = note.priority or 'low'
-	local next_index = 1
 
-	for i, p in ipairs(priorities) do
-		if p == current then
-			next_index = (i % #priorities) + 1
-			break
+	local function on_choice(choice)
+		if type(choice) == 'string' and vim.tbl_contains(priorities, choice) then
+			note.priority = choice
+			save_notes()
+			render()
 		end
 	end
 
-	note.priority = priorities[next_index]
-	save_notes()
-	render()
+	local opts = {
+		prompt = 'Select priority:',
+		format_item = function(item)
+			return item:sub(1, 1):upper() .. item:sub(2) -- Capitalize first letter
+		end,
+	}
+
+	local ok = pcall(vim.ui.select, priorities, opts, on_choice)
+	if not ok then
+		local current = note.priority or 'low'
+		local next_index = 1
+
+		for i, p in ipairs(priorities) do
+			if p == current then
+				next_index = (i % #priorities) + 1
+				break
+			end
+		end
+
+		note.priority = priorities[next_index]
+		save_notes()
+		render()
+	end
 end
 
 local function load_notes()
