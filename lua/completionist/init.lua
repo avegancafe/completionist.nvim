@@ -21,6 +21,10 @@ local M = {
 			medium = '#ffff00',
 			high = '#ff0000',
 		},
+		icons = {
+			bullet = '•',
+			done = '✗',
+		}
 	},
 	buffer = nil,
 	window = nil,
@@ -30,7 +34,7 @@ local M = {
 
 local function render_note(note, level, lines, ancestors_done)
 	local indent = string.rep('  ', level)
-	local checkbox = note.done and X_MARK or BULLET
+	local checkbox = note.done and M.config.icons.done or M.config.icons.bullet
 	local text = note.note
 	local is_done = note.done or ancestors_done
 
@@ -259,6 +263,10 @@ function M.setup(opts)
 
 	if opts.colors then
 		M.config.colors = vim.tbl_deep_extend('force', M.config.colors, opts.colors)
+	end
+
+	if opts.icons then
+		M.config.icons = vim.tbl_deep_extend('force', M.config.icons, opts.icons)
 	end
 
 	vim.cmd(string.format(
