@@ -428,6 +428,7 @@ function M.toggle()
 	vim.cmd('botright vertical split')
 	vim.cmd('vertical resize 60')
 	vim.cmd('set linebreak')
+	vim.cmd('set norelativenumber')
 	M.window = vim.api.nvim_get_current_win()
 	vim.api.nvim_win_set_buf(M.window, M.buffer)
 
