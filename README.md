@@ -5,7 +5,8 @@ Completionist is a todo list plugin that keeps a global notepad to help you comp
 - Supports infinitely nested items
 - Visually discern priority between low, medium, and high priority items
 - Mark items as completed and delete them whenever you want
-- 
+
+![image](https://github.com/user-attachments/assets/93ae23ce-d571-4fc9-8624-70798bef52af)
 
 ## Installation
 You can install completionist.nvim with your favorite plugin manager, as long as you call `setup`. Here is an example in lazy.nvim
