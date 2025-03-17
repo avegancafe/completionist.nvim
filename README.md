@@ -55,7 +55,8 @@ A key mapping help section is available by pressing `?` when completionist is
 focused, but here is also a verbal summary of those commands:
 
 - `a` : Add new note to the end of the todo list
-- `A` : Add new subnote under the item under the current cursor
+- `A` : Add new subnote under the item currently under the cursor
+- `e` : Edit the current note under the cursor
 - `d` : Delete item under the current cursor
 - `x` : Toggle the item under the current cursor as done
 - `p` : Set priority of the item under the current cursor
