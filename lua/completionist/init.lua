@@ -58,7 +58,7 @@ local function render_note(note, level, lines, ancestors_done)
 	end
 end
 
-local function render()
+function M.render()
 	if not M.buffer or not vim.api.nvim_buf_is_valid(M.buffer) then
 		return
 	end
@@ -116,7 +116,7 @@ local function save_notes()
 end
 
 local function get_note_at_cursor()
-	local cursor_line = vim.api.nvim_win_get_cursor(0)[1]
+	local cursor_line = vim.api.nvim_win_get_cursor(M.window)[1]
 	local current_line = 0
 
 	local function traverse_notes(notes, parent)
@@ -158,7 +158,7 @@ function M.add_note(is_subnote, note_text)
 	end
 
 	save_notes()
-	render()
+	M.render()
 end
 
 function M.mark_done()
@@ -166,7 +166,7 @@ function M.mark_done()
 	if note then
 		note.done = true
 		save_notes()
-		render()
+		M.render()
 	end
 end
 
@@ -175,7 +175,7 @@ function M.mark_undone()
 	if note then
 		note.done = false
 		save_notes()
-		render()
+		M.render()
 	end
 end
 
@@ -197,7 +197,7 @@ function M.delete_note()
 		if answer ~= '' and answer:lower() == 'y' then
 			table.remove(container, index)
 			save_notes()
-			render()
+			M.render()
 		end
 	end
 end
@@ -214,7 +214,7 @@ function M.set_priority()
 		if type(choice) == 'string' and vim.tbl_contains(priorities, choice) then
 			note.priority = choice
 			save_notes()
-			render()
+			M.render()
 		end
 	end
 
@@ -239,7 +239,7 @@ function M.set_priority()
 
 		note.priority = priorities[next_index]
 		save_notes()
-		render()
+		M.render()
 	end
 end
 
@@ -297,7 +297,7 @@ end
 
 local function show_help()
 	M.help_visible = not M.help_visible
-	render()
+	M.render()
 end
 
 local function setup_keymaps()
@@ -312,7 +312,7 @@ local function setup_keymaps()
 	map('a', function()
 		if M.help_visible then
 			M.help_visible = false
-			render()
+			M.render()
 		end
 		vim.ui.input({ prompt = 'New note: ' }, function(input)
 			if input then
@@ -324,7 +324,7 @@ local function setup_keymaps()
 	map('A', function()
 		if M.help_visible then
 			M.help_visible = false
-			render()
+			M.render()
 		end
 		vim.ui.input({ prompt = 'New subnote: ' }, function(input)
 			if input then
@@ -336,7 +336,7 @@ local function setup_keymaps()
 	map('d', function()
 		if M.help_visible then
 			M.help_visible = false
-			render()
+			M.render()
 		end
 		M.delete_note()
 	end, 'Delete note')
@@ -344,7 +344,7 @@ local function setup_keymaps()
 	map('x', function()
 		if M.help_visible then
 			M.help_visible = false
-			render()
+			M.render()
 		end
 		local note = get_note_at_cursor()
 		if note then
@@ -359,7 +359,7 @@ local function setup_keymaps()
 	map('p', function()
 		if M.help_visible then
 			M.help_visible = false
-			render()
+			M.render()
 		end
 		M.set_priority()
 	end, 'Set priority')
@@ -367,7 +367,7 @@ local function setup_keymaps()
 	map('q', function()
 		if M.help_visible then
 			M.help_visible = false
-			render()
+			M.render()
 		end
 		M.toggle()
 	end, 'Close window')
@@ -437,7 +437,7 @@ function M.toggle()
 		vim.b[M.buffer].keymaps_setup = true
 	end
 
-	render()
+	M.render()
 end
 
 return M
