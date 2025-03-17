@@ -8,6 +8,7 @@ local KEYBINDS = {
 	{ key = 'd', desc = 'Delete note' },
 	{ key = 'x', desc = 'Toggle done' },
 	{ key = 'p', desc = 'Set priority' },
+	{ key = 'e', desc = 'Edit note' },
 	{ key = 'q', desc = 'Close window' },
 	{ key = '?', desc = 'Show help' },
 }
@@ -243,6 +244,19 @@ function M.set_priority()
 	end
 end
 
+function M.edit_note()
+	local note = get_note_at_cursor()
+	if note then
+		vim.ui.input({ prompt = 'Edit note: ', default = note.note }, function(input)
+			if input then
+				note.note = input
+				save_notes()
+				M.render()
+			end
+		end)
+	end
+end
+
 local function load_notes()
 	if not M.config.filepath then
 		error('Filepath not configured')
@@ -363,6 +377,14 @@ local function setup_keymaps()
 		end
 		M.set_priority()
 	end, 'Set priority')
+
+	map('e', function()
+		if M.help_visible then
+			M.help_visible = false
+			M.render()
+		end
+		M.edit_note()
+	end, 'Edit note')
 
 	map('q', function()
 		if M.help_visible then
