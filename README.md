@@ -62,6 +62,45 @@ focused, but here is also a verbal summary of those commands:
 - `p` : Set priority of the item under the current cursor
 - `q` : Close window
 
+### Lualine Integration
+
+You can display the current highest priority task in your lualine status bar.
+Here's how to set it up with lazy.nvim:
+
+```lua
+{
+  'avegancafe/completionist.nvim',
+  dependencies = { 'nvim-lua/plenary.nvim' },
+  -- ... other completionist config ...
+},
+{
+  'nvim-lualine/lualine.nvim',
+  dependencies = { 'avegancafe/completionist.nvim' },
+  config = function()
+    require('lualine').setup({
+      sections = {
+        lualine_x = {
+          {
+            function()
+              return require('completionist').current_task()
+            end,
+            cond = function()
+              return require('completionist').current_task() ~= ''
+            end,
+            color = { fg = '#ff0000' }, -- Red color for high priority tasks
+          },
+        },
+      },
+    })
+  end,
+}
+```
+
+This will show the highest priority task in your status line, with the full path
+to the root task. The task will only be displayed when there are active tasks
+(not empty). The color is set to red to match the high priority color scheme,
+but you can customize it to match your theme.
+
 ## Contributing
 
 Contributions are welcome! Here's how to get started:

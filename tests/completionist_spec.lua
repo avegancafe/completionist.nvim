@@ -192,4 +192,67 @@ describe('completionist.nvim', function()
             assert.is_true(#help_lines > #initial_lines)
         end)
     end)
+
+    describe('current_task', function()
+        it('should return empty string when no notes exist', function()
+            assert.equals('', M.current_task())
+        end)
+
+        it('should return single note when no subnotes exist', function()
+            M.notes = {
+                { note = 'Test note', priority = 'low' }
+            }
+            assert.equals('Test note', M.current_task())
+        end)
+
+        it('should return highest priority note path', function()
+            M.notes = {
+                {
+                    note = 'Parent note',
+                    priority = 'low',
+                    subnotes = {
+                        { note = 'High priority child', priority = 'high' },
+                        { note = 'Low priority child',  priority = 'low' }
+                    }
+                }
+            }
+            assert.equals('Parent note > High priority child', M.current_task())
+        end)
+
+        it('should handle multiple levels of subnotes', function()
+            M.notes = {
+                {
+                    note = 'Root note',
+                    priority = 'low',
+                    subnotes = {
+                        {
+                            note = 'Medium priority',
+                            priority = 'medium',
+                            subnotes = {
+                                { note = 'High priority', priority = 'high' }
+                            }
+                        }
+                    }
+                }
+            }
+            assert.equals('Root note > Medium priority > High priority', M.current_task())
+        end)
+
+        it('should handle multiple root notes with different priorities', function()
+            M.notes = {
+                { note = 'Low priority root',    priority = 'low' },
+                { note = 'High priority root',   priority = 'high' },
+                { note = 'Medium priority root', priority = 'medium' }
+            }
+            assert.equals('High priority root', M.current_task())
+        end)
+
+        it('should handle notes with no priority set', function()
+            M.notes = {
+                { note = 'No priority note' },
+                { note = 'High priority note', priority = 'high' }
+            }
+            assert.equals('High priority note', M.current_task())
+        end)
+    end)
 end)

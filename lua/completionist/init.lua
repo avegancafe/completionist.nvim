@@ -462,4 +462,45 @@ function M.toggle()
 	M.render()
 end
 
+function M.current_task()
+	local function get_priority_value(priority)
+		local priorities = { low = 1, medium = 2, high = 3 }
+		return priorities[priority or 'low']
+	end
+
+	local function find_highest_priority_note(notes)
+		if not notes or #notes == 0 then
+			return nil
+		end
+
+		local highest = notes[1]
+		for _, note in ipairs(notes) do
+			if get_priority_value(note.priority) > get_priority_value(highest.priority) then
+				highest = note
+			end
+		end
+		return highest
+	end
+
+	local function build_task_path(note)
+		if not note then
+			return nil
+		end
+
+		local path = { note.note }
+		local current = note
+
+		while current.subnotes and #current.subnotes > 0 do
+			current = find_highest_priority_note(current.subnotes)
+			if not current then break end
+			table.insert(path, current.note)
+		end
+
+		return table.concat(path, " > ")
+	end
+
+	local root_note = find_highest_priority_note(M.notes)
+	return root_note and build_task_path(root_note) or ""
+end
+
 return M
