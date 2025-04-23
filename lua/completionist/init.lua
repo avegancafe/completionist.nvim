@@ -473,10 +473,12 @@ function M.current_task()
 			return nil
 		end
 
-		local highest = notes[1]
+		local highest = nil
 		for _, note in ipairs(notes) do
-			if get_priority_value(note.priority) > get_priority_value(highest.priority) then
-				highest = note
+			if not note.done then
+				if not highest or get_priority_value(note.priority) > get_priority_value(highest.priority) then
+					highest = note
+				end
 			end
 		end
 		return highest
