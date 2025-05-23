@@ -1,5 +1,3 @@
-local BULLET = '•'
-local X_MARK = '✗'
 local BUFFER_NAME = 'TodoList'
 
 local KEYBINDS = {
@@ -283,7 +281,12 @@ end
 
 function M.setup(opts)
 	opts = opts or {}
-	M.config.filepath = opts.filepath or vim.fn.stdpath('data') .. '/todolist.json'
+
+	if type(opts.filepath) == 'function' then
+		M.config.filepath = opts.filepath()
+	else
+		M.config.filepath = opts.filepath or vim.fn.stdpath('data') .. '/todolist.json'
+	end
 
 	if opts.colors then
 		M.config.colors = vim.tbl_deep_extend('force', M.config.colors, opts.colors)
@@ -295,11 +298,11 @@ function M.setup(opts)
 
 	vim.cmd(string.format(
 		[[
-		highlight default TodoListNormal guifg=%s
-		highlight default TodoListDone guifg=%s
-		highlight default TodoListMedium guifg=%s
-		highlight default TodoListHigh guifg=%s
-	]],
+        highlight default TodoListNormal guifg=%s
+        highlight default TodoListDone guifg=%s
+        highlight default TodoListMedium guifg=%s
+        highlight default TodoListHigh guifg=%s
+    ]],
 		M.config.colors.normal,
 		M.config.colors.done,
 		M.config.colors.medium,
@@ -494,15 +497,17 @@ function M.current_task()
 
 		while current.subnotes and #current.subnotes > 0 do
 			current = find_highest_priority_note(current.subnotes)
-			if not current then break end
+			if not current then
+				break
+			end
 			table.insert(path, current.note)
 		end
 
-		return table.concat(path, " > ")
+		return table.concat(path, ' > ')
 	end
 
 	local root_note = find_highest_priority_note(M.notes)
-	return root_note and build_task_path(root_note) or ""
+	return root_note and build_task_path(root_note) or ''
 end
 
 return M

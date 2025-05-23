@@ -29,7 +29,10 @@ you call `setup`. Here is an example in lazy.nvim
   }},
   opts = {
     -- Path to the JSON file where notes are stored
-    filepath = vim.fn.stdpath('data') .. '/todolist.json',
+    -- filepath = vim.fn.stdpath('data') .. '/todolist.json',
+    filepath = function()
+      return vim.fn.getcwd() .. '/todolist.json'
+    end,
 
     -- Colors for different note states and priorities
     colors = {
