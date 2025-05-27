@@ -16,6 +16,8 @@ describe('completionist.nvim', function()
 				done = '✗',
 			},
 		}
+		M.setup({ filepath = M.config.filepath })
+		
 		local bufnr = vim.fn.bufnr('TodoList')
 		if bufnr ~= -1 then
 			vim.api.nvim_buf_delete(bufnr, { force = true })
@@ -265,7 +267,6 @@ describe('completionist.nvim', function()
 
 			assert.equals(test_filepath, M.config.filepath)
 
-			-- Clean up
 			if vim.fn.filereadable(test_filepath) == 1 then
 				vim.fn.delete(test_filepath)
 			end
@@ -281,7 +282,6 @@ describe('completionist.nvim', function()
 
 			assert.equals(test_filepath, M.config.filepath)
 
-			-- Clean up
 			if vim.fn.filereadable(test_filepath) == 1 then
 				vim.fn.delete(test_filepath)
 			end
@@ -292,6 +292,203 @@ describe('completionist.nvim', function()
 			local default_path = vim.fn.stdpath('data') .. '/todolist.json'
 
 			assert.equals(default_path, M.config.filepath)
+		end)
+	end)
+
+	describe('note movement', function()
+		it('should move note up in root list', function()
+			M.toggle()
+			M.add_note(false, 'First note')
+			M.add_note(false, 'Second note')
+			M.add_note(false, 'Third note')
+
+			vim.api.nvim_win_set_cursor(M.window, { 2, 0 })
+
+			M.move_note_up()
+
+			assert.equals('Second note', M.notes[1].note)
+			assert.equals('First note', M.notes[2].note)
+			assert.equals('Third note', M.notes[3].note)
+
+			local lines = vim.api.nvim_buf_get_lines(M.buffer, 0, -1, false)
+			assert.equals('• Second note', lines[1])
+			assert.equals('• First note', lines[2])
+			assert.equals('• Third note', lines[3])
+		end)
+
+		it('should move note down in root list', function()
+			M.toggle()
+			M.add_note(false, 'First note')
+			M.add_note(false, 'Second note')
+			M.add_note(false, 'Third note')
+
+			vim.api.nvim_win_set_cursor(M.window, { 2, 0 })
+
+			M.move_note_down()
+
+			assert.equals('First note', M.notes[1].note)
+			assert.equals('Third note', M.notes[2].note)
+			assert.equals('Second note', M.notes[3].note)
+
+			local lines = vim.api.nvim_buf_get_lines(M.buffer, 0, -1, false)
+			assert.equals('• First note', lines[1])
+			assert.equals('• Third note', lines[2])
+			assert.equals('• Second note', lines[3])
+		end)
+
+		it('should not move first note up', function()
+			M.toggle()
+			M.add_note(false, 'First note')
+			M.add_note(false, 'Second note')
+
+			vim.api.nvim_win_set_cursor(M.window, { 1, 0 })
+
+			M.move_note_up()
+
+			assert.equals('First note', M.notes[1].note)
+			assert.equals('Second note', M.notes[2].note)
+		end)
+
+		it('should not move last note down', function()
+			M.toggle()
+			M.add_note(false, 'First note')
+			M.add_note(false, 'Second note')
+
+			vim.api.nvim_win_set_cursor(M.window, { 2, 0 })
+
+			M.move_note_down()
+
+			assert.equals('First note', M.notes[1].note)
+			assert.equals('Second note', M.notes[2].note)
+		end)
+
+		it('should move subnote up within parent', function()
+			M.toggle()
+			M.add_note(false, 'Parent note')
+			vim.api.nvim_win_set_cursor(M.window, { 1, 0 })
+			M.add_note(true, 'First child')
+			M.add_note(true, 'Second child')
+			M.add_note(true, 'Third child')
+
+			vim.api.nvim_win_set_cursor(M.window, { 3, 0 })
+
+			M.move_note_up()
+
+			local parent = M.notes[1]
+			assert.equals('Second child', parent.subnotes[1].note)
+			assert.equals('First child', parent.subnotes[2].note)
+			assert.equals('Third child', parent.subnotes[3].note)
+
+			local lines = vim.api.nvim_buf_get_lines(M.buffer, 0, -1, false)
+			assert.equals('• Parent note', lines[1])
+			assert.equals('  • Second child', lines[2])
+			assert.equals('  • First child', lines[3])
+			assert.equals('  • Third child', lines[4])
+		end)
+
+		it('should move subnote down within parent', function()
+			M.toggle()
+			M.add_note(false, 'Parent note')
+			vim.api.nvim_win_set_cursor(M.window, { 1, 0 })
+			M.add_note(true, 'First child')
+			M.add_note(true, 'Second child')
+			M.add_note(true, 'Third child')
+
+			vim.api.nvim_win_set_cursor(M.window, { 3, 0 })
+
+			M.move_note_down()
+
+			local parent = M.notes[1]
+			assert.equals('First child', parent.subnotes[1].note)
+			assert.equals('Third child', parent.subnotes[2].note)
+			assert.equals('Second child', parent.subnotes[3].note)
+
+			local lines = vim.api.nvim_buf_get_lines(M.buffer, 0, -1, false)
+			assert.equals('• Parent note', lines[1])
+			assert.equals('  • First child', lines[2])
+			assert.equals('  • Third child', lines[3])
+			assert.equals('  • Second child', lines[4])
+		end)
+
+		it('should save notes after moving', function()
+			M.toggle()
+			M.add_note(false, 'First note')
+			M.add_note(false, 'Second note')
+
+			vim.api.nvim_win_set_cursor(M.window, { 2, 0 })
+			M.move_note_up()
+
+			assert.equals('Second note', M.notes[1].note)
+			assert.equals('First note', M.notes[2].note)
+
+			M.toggle()
+			
+			vim.wait(100, function() return false end)
+			
+			assert.truthy(vim.fn.filereadable(M.config.filepath) == 1)
+			
+			if M.buffer and vim.api.nvim_buf_is_valid(M.buffer) then
+				vim.api.nvim_buf_delete(M.buffer, { force = true })
+			end
+			M.buffer = nil
+			
+			M.notes = {}
+			M.toggle()
+
+			assert.equals(2, #M.notes)
+			assert.equals('Second note', M.notes[1].note)
+			assert.equals('First note', M.notes[2].note)
+		end)
+
+		it('should handle cursor movement after moving note up', function()
+			M.toggle()
+			M.add_note(false, 'First note')
+			M.add_note(false, 'Second note')
+			M.add_note(false, 'Third note')
+
+			vim.api.nvim_win_set_cursor(M.window, { 3, 0 })
+			local initial_cursor = vim.api.nvim_win_get_cursor(M.window)
+
+			M.move_note_up()
+
+			local final_cursor = vim.api.nvim_win_get_cursor(M.window)
+			assert.equals(initial_cursor[1] - 1, final_cursor[1])
+		end)
+
+		it('should handle cursor movement after moving note down', function()
+			M.toggle()
+			M.add_note(false, 'First note')
+			M.add_note(false, 'Second note')
+			M.add_note(false, 'Third note')
+
+			vim.api.nvim_win_set_cursor(M.window, { 1, 0 })
+			local initial_cursor = vim.api.nvim_win_get_cursor(M.window)
+
+			M.move_note_down()
+
+			local final_cursor = vim.api.nvim_win_get_cursor(M.window)
+			assert.equals(initial_cursor[1] + 1, final_cursor[1])
+		end)
+
+		it('should handle mixed hierarchy movement', function()
+			M.toggle()
+			M.add_note(false, 'Root 1')
+			M.add_note(false, 'Root 2')
+
+			vim.api.nvim_win_set_cursor(M.window, { 1, 0 })
+			M.add_note(true, 'Root 1 Child 1')
+			M.add_note(true, 'Root 1 Child 2')
+
+			vim.api.nvim_win_set_cursor(M.window, { 4, 0 })
+			M.add_note(true, 'Root 2 Child 1')
+
+			vim.api.nvim_win_set_cursor(M.window, { 3, 0 })
+			M.move_note_up()
+
+			assert.equals('Root 1 Child 2', M.notes[1].subnotes[1].note)
+			assert.equals('Root 1 Child 1', M.notes[1].subnotes[2].note)
+
+			assert.equals('Root 2 Child 1', M.notes[2].subnotes[1].note)
 		end)
 	end)
 end)

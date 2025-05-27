@@ -9,6 +9,8 @@ local KEYBINDS = {
 	{ key = 'e', desc = 'Edit note' },
 	{ key = 'q', desc = 'Close window' },
 	{ key = '?', desc = 'Show help' },
+	{ key = 'K', desc = 'Move note up' },
+	{ key = 'J', desc = 'Move note down' },
 }
 
 local M = {
@@ -398,6 +400,22 @@ local function setup_keymaps()
 	end, 'Close window')
 
 	map('?', show_help, 'Show help')
+
+	map('K', function()
+		if M.help_visible then
+			M.help_visible = false
+			M.render()
+		end
+		M.move_note_up()
+	end, 'Move note up')
+
+	map('J', function()
+		if M.help_visible then
+			M.help_visible = false
+			M.render()
+		end
+		M.move_note_down()
+	end, 'Move note down')
 end
 
 function M.toggle()
@@ -508,6 +526,38 @@ function M.current_task()
 
 	local root_note = find_highest_priority_note(M.notes)
 	return root_note and build_task_path(root_note) or ''
+end
+
+function M.move_note_up()
+  local note, container, index = get_note_at_cursor()
+  if note and container and index and index > 1 then
+    -- Swap with the previous note
+    container[index], container[index - 1] = container[index - 1], container[index]
+    save_notes()
+    M.render()
+    
+    -- Move cursor to follow the moved note
+    if M.window and vim.api.nvim_win_is_valid(M.window) then
+      local cursor = vim.api.nvim_win_get_cursor(M.window)
+      vim.api.nvim_win_set_cursor(M.window, {cursor[1] - 1, cursor[2]})
+    end
+  end
+end
+
+function M.move_note_down()
+  local note, container, index = get_note_at_cursor()
+  if note and container and index and index < #container then
+    -- Swap with the next note
+    container[index], container[index + 1] = container[index + 1], container[index]
+    save_notes()
+    M.render()
+    
+    -- Move cursor to follow the moved note
+    if M.window and vim.api.nvim_win_is_valid(M.window) then
+      local cursor = vim.api.nvim_win_get_cursor(M.window)
+      vim.api.nvim_win_set_cursor(M.window, {cursor[1] + 1, cursor[2]})
+    end
+  end
 end
 
 return M
